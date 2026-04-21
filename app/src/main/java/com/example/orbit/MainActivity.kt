@@ -1,6 +1,7 @@
 package com.example.orbit
 
 import android.Manifest
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -20,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.orbit.ui.theme.OrbitTheme
@@ -44,17 +46,17 @@ class MainActivity : ComponentActivity() {
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun PermissionScreen(modifier: Modifier = Modifier) {
+    val context = LocalContext.current
+    
     // 1. Define the list of permissions to request
     val permissionsToRequest = mutableListOf(
         Manifest.permission.ACCESS_FINE_LOCATION,
         Manifest.permission.ACCESS_COARSE_LOCATION,
         Manifest.permission.ACTIVITY_RECOGNITION
     ).apply {
-        // Add Bluetooth permission for Android 12+ (API 31+)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             add(Manifest.permission.BLUETOOTH_CONNECT)
         }
-        // Add Notifications permission for Android 13+ (API 33+)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             add(Manifest.permission.POST_NOTIFICATIONS)
         }
@@ -88,6 +90,18 @@ fun PermissionScreen(modifier: Modifier = Modifier) {
                 color = MaterialTheme.colorScheme.primary,
                 style = MaterialTheme.typography.bodyLarge
             )
+            Spacer(modifier = Modifier.height(24.dp))
+            
+            Button(onClick = {
+                val intent = Intent(context, TripRecordingService::class.java)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    context.startForegroundService(intent)
+                } else {
+                    context.startService(intent)
+                }
+            }) {
+                Text("Start Recording Trip")
+            }
         } else {
             Text(
                 text = "⚠️ Some permissions are missing for trip recording.",
